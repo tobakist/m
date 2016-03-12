@@ -12,6 +12,9 @@
 # -d    database
 # -c    character set (--default-character-set)
 
+# Thomas Johansson, 2016-03-12
+# https://github.com/tobakist/m
+
 # This is used if mysql is installed in
 # /opt/mysql/$MYSQL_DIST.x i.e.
 # /opt/mysql/5.7.11
