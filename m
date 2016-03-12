@@ -2,7 +2,7 @@
 
 # m - wrapper for mysql cli client using login-path
 #
-# m -i instancename [-v] [-l] [-w] [-c charset]
+# m -i instancename [-v] [-l] [-w] [-d database] [-c charset]
 #
 # -i    login-path name (--login-path=..)
 #
