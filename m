@@ -1,19 +1,23 @@
 #!/bin/bash
 
+# Version: 1.1
+
+# 1.0
+# Thomas Johansson 2016-03-07
+#
+# 1.1
+# Thomas Johansson 2018-02-21
+
 # m - wrapper for mysql cli client using login-path
 #
-# m -i instancename [-v] [-l] [-w] [-d database] [-c charset]
+# m -i instancename [-v] [-l] [-w] [-c charset]
 #
 # -i    login-path name (--login-path=..)
 #
 # -v    verbose (--verbose)
 # -l    log (--tee)
 # -w    warnings (--show-warnings)
-# -d    database
 # -c    character set (--default-character-set)
-
-# Thomas Johansson, 2016-03-12
-# https://github.com/tobakist/m
 
 # This is used if mysql is installed in
 # /opt/mysql/$MYSQL_DIST.x i.e.
@@ -37,31 +41,30 @@ KEEPLOGS=30
 # Default is to not use --verbose
 VERBOSE=0
 # Default is to not use --tee
-LOG=0
+LOG=1
 # Default is to not use --show-warnings
 WARNINGS=0
+# Use passwords
+PASSWORDS=1
 # Change if utf8 is not default
 # (friends don't let friends use latin1)
-DEFAULT_CHARSET="utf8"
-# No default database
-DATABASE="_"
+DEFAULT_CHARSET="utf8mb4"
 
+USAGE="Usage: `basename ${0}` -i login-path [-v] (verbose)  [-l] (tee) [-w] (warnings)  [-c charset] (default: ${DEFAULT_CHARSET})"
 i_SET=0
 EXTRA=0
-USAGE="Usage: `basename ${0}` -i login-path [-v] [-l] [-w] [-d databasename] [-c charset (default: ${DEFAULT_CHARSET})]"
 
 if [ $# -lt 2 ]; then
   echo "${USAGE}"
   exit 1
 fi
 
-while getopts ":i:c:d:wvl" opt; do
+while getopts ":i:c:wvl" opt; do
   case $opt in
     i  ) INSTANCE=${OPTARG} && i_SET=1 ;;
     v  ) VERBOSE=1                     ;;
     l  ) LOG=1                         ;;
     c  ) _CHARSET=${OPTARG}            ;;
-    d  ) DATABASE=${OPTARG}            ;;
     w  ) WARNINGS=1                    ;;
     \? ) echo "${USAGE}" && exit 1     ;;
     :  ) echo "${USAGE}" && exit 1     ;;
@@ -129,6 +132,10 @@ if [ ${VERBOSE} -eq 1 ]; then
   CLIENTCMD="${CLIENTCMD} --verbose"
 fi
 
+if [ ${PASSWORDS} -eq 1 ]; then
+  CLIENTCMD="${CLIENTCMD} -p"
+fi
+
 if [ ${LOG} -eq 1 ]; then
   CLIENTCMD="${CLIENTCMD} --tee=${LOGDIR}/${INSTANCE}-${DATEFORMAT}.log"
 fi
@@ -137,17 +144,5 @@ if [ ${WARNINGS} -eq 1 ]; then
   CLIENTCMD="${CLIENTCMD} --show-warnings"
 fi
 
-if [ ${DATABASE} != "_" ]; then
-  CLIENTCMD="${CLIENTCMD} ${DATABASE}"
-fi
-
-if [ ${CLIENT_INFO} == "yes" ]; then
-  if [ ${DATABASE} == "_" ]; then
-    DBNAME="none"
-  else
-    DBNAME="${DATABASE}"
-  fi
-  echo "-- MySQL Version: ${MYSQL_VERSION}, client: `which mysql`, database: ${DBNAME}"
-fi
-
+if [ ${CLIENT_INFO} == "yes" ]; then echo "-- MySQL Version: ${MYSQL_VERSION}, client: `which mysql`"; fi
 ${CLIENTCMD}
